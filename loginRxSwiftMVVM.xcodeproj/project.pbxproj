@@ -11,6 +11,7 @@
 		600D7EF625B3297700D6243E /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 600D7EF525B3297700D6243E /* User.swift */; };
 		600D7EFA25B354C600D6243E /* UsersSlideMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 600D7EF925B354C600D6243E /* UsersSlideMenuView.swift */; };
 		600D7EFD25B3581800D6243E /* UsersSlideMenuViewViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 600D7EFC25B3581800D6243E /* UsersSlideMenuViewViewModel.swift */; };
+		603102B02625C6EE00E8D5DE /* UserInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 603102AF2625C6EE00E8D5DE /* UserInfoView.swift */; };
 		60484EF125A2772300317CC8 /* Credentials.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60484EF025A2772300317CC8 /* Credentials.swift */; };
 		604DA67925FD1EB9003791FB /* UIColorExt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 604DA67825FD1EB9003791FB /* UIColorExt.swift */; };
 		6064499E2602333000D9E11D /* ImagePickerCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6064499D2602333000D9E11D /* ImagePickerCoordinator.swift */; };
@@ -49,6 +50,7 @@
 		600D7EF525B3297700D6243E /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		600D7EF925B354C600D6243E /* UsersSlideMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsersSlideMenuView.swift; sourceTree = "<group>"; };
 		600D7EFC25B3581800D6243E /* UsersSlideMenuViewViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsersSlideMenuViewViewModel.swift; sourceTree = "<group>"; };
+		603102AF2625C6EE00E8D5DE /* UserInfoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserInfoView.swift; sourceTree = "<group>"; };
 		60484EF025A2772300317CC8 /* Credentials.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Credentials.swift; sourceTree = "<group>"; };
 		604DA67825FD1EB9003791FB /* UIColorExt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIColorExt.swift; sourceTree = "<group>"; };
 		6064499D2602333000D9E11D /* ImagePickerCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePickerCoordinator.swift; sourceTree = "<group>"; };
@@ -130,6 +132,19 @@
 			path = App;
 			sourceTree = "<group>";
 		};
+		603102AD2625C5EA00E8D5DE /* Subviews */ = {
+			isa = PBXGroup;
+			children = (
+				603102AF2625C6EE00E8D5DE /* UserInfoView.swift */,
+				60BC724025AF30CC00475189 /* MenuBarViewModel.swift */,
+				60AD41F925B1E1460075DABD /* NavBarTitleView.swift */,
+				60AD41FC25B1E1550075DABD /* NavBarTitleViewViewModel.swift */,
+				600D7EF925B354C600D6243E /* UsersSlideMenuView.swift */,
+				600D7EFC25B3581800D6243E /* UsersSlideMenuViewViewModel.swift */,
+			);
+			path = Subviews;
+			sourceTree = "<group>";
+		};
 		60484EEF25A2771400317CC8 /* Model */ = {
 			isa = PBXGroup;
 			children = (
@@ -187,11 +202,7 @@
 				606C007025BA0046006EEBA3 /* MainScreenCellViewModel.swift */,
 				60B677202606652D00A03A61 /* PhotoCell.swift */,
 				60B677232606653600A03A61 /* PhotoCellViewModel.swift */,
-				60BC724025AF30CC00475189 /* MenuBarViewModel.swift */,
-				60AD41F925B1E1460075DABD /* NavBarTitleView.swift */,
-				60AD41FC25B1E1550075DABD /* NavBarTitleViewViewModel.swift */,
-				600D7EF925B354C600D6243E /* UsersSlideMenuView.swift */,
-				600D7EFC25B3581800D6243E /* UsersSlideMenuViewViewModel.swift */,
+				603102AD2625C5EA00E8D5DE /* Subviews */,
 			);
 			path = MainScreen;
 			sourceTree = "<group>";
@@ -362,6 +373,7 @@
 				600D7EF325B31E9200D6243E /* DataService.swift in Sources */,
 				60B677212606652D00A03A61 /* PhotoCell.swift in Sources */,
 				60BC723E25AF0ECC00475189 /* MenuBar.swift in Sources */,
+				603102B02625C6EE00E8D5DE /* UserInfoView.swift in Sources */,
 				606449A426023D2B00D9E11D /* ImagePicker.swift in Sources */,
 				600D7EFD25B3581800D6243E /* UsersSlideMenuViewViewModel.swift in Sources */,
 				60C07CEE2594EB1D005B116A /* AppDelegate.swift in Sources */,

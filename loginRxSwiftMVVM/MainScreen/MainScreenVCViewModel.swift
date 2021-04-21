@@ -20,6 +20,8 @@ protocol MainScreenViewModelType: class {
     var didTapAddPhoto: Observable<Void> { get }
     var imagesAdded: AnyObserver<[UIImage]?> { get }
     var photosDeleted: AnyObserver<Void> { get }
+    var mainCellDidScroll: Observable<CGFloat> { get }
+    
     func getUsersSlideMenuHeight() -> CGFloat
     func menuBarViewModel() -> MenuBarViewModelType
     func navBarTitleViewViewModel() -> NavBarTitleViewViewModelType
@@ -41,6 +43,7 @@ final class MainScreenViewModel: MainScreenViewModelType {
     let userEdited: AnyObserver<UserSettingsEditResult?>
     var imagesAdded: AnyObserver<[UIImage]?>
     let photosDeleted: AnyObserver<Void>
+    let mainCellScrolled: AnyObserver<CGFloat>
     
     //MARK: -Outputs
     private let users: BehaviorSubject<[User]>
@@ -55,7 +58,7 @@ final class MainScreenViewModel: MainScreenViewModelType {
     let didEditUser: Observable<UserSettingsEditResult?>
     let didAddImages: Observable<[UIImage]?>
     let deletePhotosTapped: Observable<Void>
-    
+    let mainCellDidScroll: Observable<CGFloat>
     
     private var usersCount: Int = 0
     
@@ -102,6 +105,10 @@ final class MainScreenViewModel: MainScreenViewModelType {
         let _photosDeleted = PublishSubject<Void>()
         photosDeleted = _photosDeleted.asObserver()
         deletePhotosTapped = _photosDeleted.asObservable()
+        
+        let _mainCellScrolled = PublishSubject<CGFloat>()
+        mainCellScrolled = _mainCellScrolled.asObserver()
+        mainCellDidScroll = _mainCellScrolled.asObservable()
         
         menuBarCellSelected = BehaviorSubject<IndexPath>(value: IndexPath(item: 0, section: 0))
         
@@ -161,7 +168,7 @@ final class MainScreenViewModel: MainScreenViewModelType {
     
     func mainScreeCellViewModel(for indexPath: IndexPath) -> MainScreenCellViewModelType {
         let photoType: PhotoType = indexPath.row == 0 ? .ordinary : .userMarked
-        print(photoType)
+        
         let deletePhotosTapped = self.deletePhotosTapped.withLatestFrom(menuBarCellSelected.asObservable()).filter { (index) -> Bool in
             if photoType.rawValue == index.item {
                 return true
@@ -183,6 +190,7 @@ final class MainScreenViewModel: MainScreenViewModelType {
         }.debug()
         let vm = MainScreenCellViewModel(database: database, photoType: photoType, deletePhotosTapped: deletePhotosTapped,
                                          imagesAdded: didAddImages, selectedUser: selectedUser)
+        vm.scrollViewDidScroll.bind(to: mainCellScrolled).disposed(by: bag)
         return vm
     }
 }

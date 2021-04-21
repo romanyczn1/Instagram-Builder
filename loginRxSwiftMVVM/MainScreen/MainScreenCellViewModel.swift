@@ -12,6 +12,8 @@ protocol MainScreenCellViewModelType: class {
     var photos: BehaviorSubject<[Photo]> { get }
     var sections: Observable<[PhotosSection]> { get }
     var selectedPhotos: BehaviorSubject<[IndexPath]?> { get }
+    var viewScrolled: AnyObserver<CGFloat> { get }
+    var scrollViewDidScroll: Observable<CGFloat> { get }
     func photoCellViewModel(for indexPath: IndexPath) -> PhotoCellViewModelType
     func reorderPhotos(from source: IndexPath, to destination: IndexPath)
     func getPhoto(at indexPath: IndexPath) -> Photo
@@ -23,14 +25,17 @@ final class MainScreenCellViewModel: MainScreenCellViewModelType {
     var photoType: PhotoType
     var photos: BehaviorSubject<[Photo]>
     let sections: Observable<[PhotosSection]>
-    var selectedPhotos: BehaviorSubject<[IndexPath]?>
+    let selectedPhotos: BehaviorSubject<[IndexPath]?>
     private let imageStoringService: ImageStoringService
     private let database: DataService
     let didReorderPhotos: PublishSubject<Void>
+    let viewScrolled: AnyObserver<CGFloat>
+    let scrollViewDidScroll: Observable<CGFloat>
     
     init(database: DataService, photoType: PhotoType,
          deletePhotosTapped: Observable<Void>, imagesAdded: Observable<[UIImage]?>,
          selectedUser: Observable<User>) {
+        
         self.database = database
         self.disposeBag = DisposeBag()
         self.photoType = photoType
@@ -39,10 +44,11 @@ final class MainScreenCellViewModel: MainScreenCellViewModelType {
         self.selectedPhotos = BehaviorSubject<[IndexPath]?>(value: [])
         self.didReorderPhotos = PublishSubject<Void>()
         
+        let _viewScrolled = PublishSubject<CGFloat>()
+        viewScrolled = _viewScrolled.asObserver()
+        scrollViewDidScroll = _viewScrolled.asObservable()
+        
         sections = photos.map({ photos in
-            photos.forEach { (photo) in
-                print(photo.pos)
-            }
             let section = PhotosSection(header: "0", items: photos)
             return [section]
         })
@@ -94,7 +100,6 @@ final class MainScreenCellViewModel: MainScreenCellViewModelType {
         }
         deletePhotosTapped.withLatestFrom(selections).subscribe(onNext: { [weak self] (indexes, user) in
             if indexes != nil {
-                print(user.userName)
                 let positions: [Int] = indexes!.map { $0.row }
                 self?.database.deletePhotos(for: user, positions: positions, photoType: photoType)
                 switch photoType {
@@ -126,7 +131,6 @@ final class MainScreenCellViewModel: MainScreenCellViewModelType {
     func photoCellViewModel(for indexPath: IndexPath) -> PhotoCellViewModelType {
         do {
             let imageName = try photos.value()[indexPath.row].imageName
-            print(imageName)
             let image = imageStoringService.loadImageFromDiskWith(fileName: imageName)
             return PhotoCellViewModel(with: image!)
         } catch {

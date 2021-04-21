@@ -14,6 +14,7 @@ final class MainScreenCell: UICollectionViewCell {
     
     static let reuseIdentidier = "MainScreenCell"
     
+    private let viewScrolled: PublishSubject<CGFloat>
     private var viewModel: MainScreenCellViewModelType?
     private let disposeBag: DisposeBag
      
@@ -25,12 +26,14 @@ final class MainScreenCell: UICollectionViewCell {
         cv.translatesAutoresizingMaskIntoConstraints = false
         cv.backgroundColor = .themeColor
         cv.allowsMultipleSelection = true
+        //cv.isScrollEnabled = false
         cv.register(PhotoCell.self, forCellWithReuseIdentifier: PhotoCell.reuseIdentifier)
         return cv
     }()
     
     override init(frame: CGRect) {
         self.disposeBag = DisposeBag()
+        self.viewScrolled = PublishSubject<CGFloat>()
         
         super.init(frame: frame)
         
@@ -40,6 +43,7 @@ final class MainScreenCell: UICollectionViewCell {
     func bindCollectionView(with viewModel: MainScreenCellViewModelType) {
         self.viewModel = viewModel
         
+        viewScrolled.bind(to: viewModel.viewScrolled).disposed(by: disposeBag)
         collectionView.dataSource = nil
         let dataSource = RxCollectionViewSectionedReloadDataSource<PhotosSection> { [weak viewModel] (dataSource, cv, index, photo) -> UICollectionViewCell in
             let cell = cv.dequeueReusableCell(withReuseIdentifier: PhotoCell.reuseIdentifier, for: index) as! PhotoCell
@@ -79,6 +83,12 @@ final class MainScreenCell: UICollectionViewCell {
 }
 
 extension MainScreenCell: UICollectionViewDelegateFlowLayout {
+    
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        viewScrolled.onNext(scrollView.contentOffset.y)
+        scrollView.bounces = (scrollView.contentOffset.y > 100)
+    }
+    
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         return CGSize(width: ((collectionView.frame.width-2)/3), height: ((collectionView.frame.width-2)/3))
     }
@@ -133,7 +143,11 @@ extension MainScreenCell: UICollectionViewDropDelegate {
                 viewModel?.reorderPhotos(from: sourceIndexPath, to: destinationIndexPath)
                 collectionView.deleteItems(at: [sourceIndexPath])
                 collectionView.insertItems(at: [destinationIndexPath])
-            }, completion: nil )
+                collectionView.indexPathsForSelectedItems?.forEach({ (index) in
+                    collectionView.deselectItem(at: index, animated: true)
+                })
+               viewModel?.selectedPhotos.onNext(nil)
+            }, completion: nil)
             coordinator.drop(item.dragItem, toItemAt: destinationIndexPath)
             
         }

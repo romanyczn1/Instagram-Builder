@@ -12,8 +12,27 @@ import RxCocoa
 final class MainScreenViewController: UIViewController, StoryboardInitializable {
     
     var viewModel: MainScreenViewModelType!
+    let mainViewScrolled: PublishSubject<CGFloat> = PublishSubject<CGFloat>()
+    private var viewState: ViewState = .loaded
     
     private var menuBar: MenuBar!
+    
+    private let mainScrollView: UIScrollView = {
+        let scrollView = UIScrollView()
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.showsVerticalScrollIndicator = false
+        scrollView.bounces = false
+        return scrollView
+    }()
+    
+    let contentView = UIView()
+    
+    let headerView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = #colorLiteral(red: 0.1764705926, green: 0.4980392158, blue: 0.7568627596, alpha: 1)
+        return view
+    }()
     
     lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
@@ -55,14 +74,100 @@ final class MainScreenViewController: UIViewController, StoryboardInitializable 
         
         view.backgroundColor = .themeColor
         
-        setUpMenuBar()
-        setUpCollectionView()
-        setUpNavBar()
-        setUpSlideMenu()
+        bindScrollView()
+        bindMenuBar()
+        bindNavBar()
+        bindSlideMenu()
         setUpBarButtons()
     }
     
-    private func setUpNavBar() {
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        
+        view.addSubview(mainScrollView)
+        NSLayoutConstraint.activate([
+            mainScrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            mainScrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            mainScrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            mainScrollView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+        ])
+        
+        contentView.translatesAutoresizingMaskIntoConstraints = false
+        mainScrollView.addSubview(contentView)
+        NSLayoutConstraint.activate([
+            contentView.topAnchor.constraint(equalTo: mainScrollView.topAnchor, constant: 0),
+            contentView.leadingAnchor.constraint(equalTo: mainScrollView.leadingAnchor, constant: 0),
+            contentView.trailingAnchor.constraint(equalTo: mainScrollView.trailingAnchor, constant: 0),
+            contentView.bottomAnchor.constraint(equalTo: mainScrollView.bottomAnchor, constant: 0),
+            contentView.centerYAnchor.constraint(equalTo: mainScrollView.centerYAnchor),
+            contentView.centerXAnchor.constraint(equalTo: mainScrollView.centerXAnchor)
+        ])
+        
+        contentView.addSubview(headerView)
+        NSLayoutConstraint.activate([
+            headerView.topAnchor.constraint(equalTo: contentView.topAnchor),
+            headerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            headerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            headerView.heightAnchor.constraint(equalToConstant: 47.5)
+        ])
+        
+        menuBar.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(menuBar)
+        NSLayoutConstraint.activate([
+            menuBar.topAnchor.constraint(equalTo: headerView.bottomAnchor),
+            menuBar.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            menuBar.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            menuBar.heightAnchor.constraint(equalToConstant: 47.5)
+        ])
+        mainScrollView.contentSize = CGSize(width: view.frame.width, height: 48.5 + view.frame.height - view.safeAreaInsets.top - view.safeAreaInsets.bottom)
+        contentView.addSubview(collectionView)
+        let bottomAnchor = collectionView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor)
+        bottomAnchor.priority = UILayoutPriority(rawValue: 250)
+        let heightAnchor = collectionView.heightAnchor.constraint(equalToConstant: view.frame.height - 47.5 - view.safeAreaInsets.top - view.safeAreaInsets.bottom)
+        print(view.frame.height - 47.5 - view.safeAreaInsets.top - view.safeAreaInsets.bottom)
+        heightAnchor.priority = UILayoutPriority(rawValue: 999)
+        NSLayoutConstraint.activate([
+            collectionView.topAnchor.constraint(equalTo: menuBar.bottomAnchor, constant: 1),
+            collectionView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            collectionView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            heightAnchor,
+            bottomAnchor
+        ])
+        
+        if viewState == .loaded {
+            slideMenuHeightConstraint = usersSlideMenu.heightAnchor.constraint(equalToConstant: 0)
+            viewState = .appeared
+        }
+        
+        contentView.addSubview(usersSlideMenu)
+        
+        NSLayoutConstraint.activate([
+            usersSlideMenu.topAnchor.constraint(equalTo: menuBar.bottomAnchor),
+            usersSlideMenu.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            usersSlideMenu.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            slideMenuHeightConstraint
+        ])
+        
+        contentView.addSubview(blackView)
+        NSLayoutConstraint.activate([
+            blackView.topAnchor.constraint(equalTo: usersSlideMenu.bottomAnchor),
+            blackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            blackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            blackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor)
+        ])
+    }
+    
+    private func bindScrollView() {
+        viewModel.mainCellDidScroll.subscribe(onNext: { [unowned self] yOffset in
+            if yOffset <= headerView.frame.height {
+                mainScrollView.contentOffset.y = yOffset
+            } else {
+                mainScrollView.contentOffset.y = headerView.frame.height
+            }
+        }).disposed(by: disposeBag)
+    }
+    
+    private func bindNavBar() {
         let titleView = NavBarTitleView(frame: .zero, viewModel: viewModel.navBarTitleViewViewModel())
         viewModel.didSelectTitle?.subscribe(onNext: { [unowned self] (isSelected) in
             if isSelected {
@@ -77,50 +182,17 @@ final class MainScreenViewController: UIViewController, StoryboardInitializable 
         titleView.heightAnchor.constraint(equalToConstant: 30).isActive = true
     }
     
-    private func setUpCollectionView() {
-        view.addSubview(collectionView)
-        NSLayoutConstraint.activate([
-            collectionView.topAnchor.constraint(equalTo: menuBar.bottomAnchor, constant: 1),
-            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-        ])
-    }
-    
-    private func setUpMenuBar() {
+    private func bindMenuBar() {
         menuBar = MenuBar(frame: .zero, viewModel: viewModel.menuBarViewModel())
-        menuBar.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(menuBar)
-        NSLayoutConstraint.activate([
-            menuBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            menuBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            menuBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            menuBar.heightAnchor.constraint(equalToConstant: 47.5)
-        ])
         menuBar.collectionView.rx.itemSelected.distinctUntilChanged().subscribe(onNext: { [weak self] (indexPath) in
             self?.collectionView.scrollToItem(at: indexPath, at: .bottom, animated: true)
         }).disposed(by: disposeBag)
     }
     
-    private func setUpSlideMenu() {
-        view.addSubview(usersSlideMenu)
-        slideMenuHeightConstraint = usersSlideMenu.heightAnchor.constraint(equalToConstant: 0)
-        NSLayoutConstraint.activate([
-            usersSlideMenu.topAnchor.constraint(equalTo: menuBar.bottomAnchor),
-            usersSlideMenu.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            usersSlideMenu.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            slideMenuHeightConstraint
-        ])
-        view.addSubview(blackView)
+    private func bindSlideMenu() {
         let tap = UITapGestureRecognizer()
         blackView.addGestureRecognizer(tap)
         tap.rx.event.bind(to: viewModel.blackViewTapped).disposed(by: disposeBag)
-        NSLayoutConstraint.activate([
-            blackView.topAnchor.constraint(equalTo: usersSlideMenu.bottomAnchor),
-            blackView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            blackView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            blackView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-        ])
     }
     
     private func setUpBarButtons() {
@@ -168,6 +240,11 @@ final class MainScreenViewController: UIViewController, StoryboardInitializable 
             button.tintColor = .oppositeColor
         })
     }
+    
+    enum ViewState {
+        case appeared
+        case loaded
+    }
 }
 
 extension MainScreenViewController: UICollectionViewDataSource {
@@ -177,7 +254,6 @@ extension MainScreenViewController: UICollectionViewDataSource {
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: MainScreenCell.reuseIdentidier, for: indexPath) as! MainScreenCell
-        print("cellForItem at \(indexPath)")
         cell.bindCollectionView(with: viewModel.mainScreeCellViewModel(for: indexPath))
         return cell
     }
@@ -185,7 +261,8 @@ extension MainScreenViewController: UICollectionViewDataSource {
 
 extension MainScreenViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        return CGSize(width: view.frame.width, height: view.frame.height - (menuBar.frame.height) - view.safeAreaInsets.top - 1)
+        print("cell height \(collectionView.bounds.height)")
+        return CGSize(width: view.frame.width, height: collectionView.frame.height)
     }
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {

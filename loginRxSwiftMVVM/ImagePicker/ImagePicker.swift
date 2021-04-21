@@ -60,7 +60,7 @@ final class ImagePicker: NSObject {
         assets.forEach { (asset) in
             let manager = PHImageManager.default()
             let option = PHImageRequestOptions()
-            option.isSynchronous = true
+            option.isSynchronous = false
             option.isNetworkAccessAllowed = true
             option.resizeMode = .none
             option.deliveryMode = .opportunistic

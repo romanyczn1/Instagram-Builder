@@ -108,7 +108,6 @@ final class DataService {
                 user.photos.sorted { (photo, photo1) -> Bool in
                     photo.pos < photo1.pos
                 }.forEach { (photo) in
-                    print(photo.pos)
                     if positions.contains(photo.pos) {
                         imageStoringService.deleteImage(imageName: photo.imageName)
                         realm.delete(photo)
@@ -121,7 +120,6 @@ final class DataService {
                 user.markedPhotos.sorted { (photo, photo1) -> Bool in
                     photo.pos < photo1.pos
                 }.forEach { (photo) in
-                    print(photo.pos)
                     if positions.contains(photo.pos) {
                         imageStoringService.deleteImage(imageName: photo.imageName)
                         realm.delete(photo)
