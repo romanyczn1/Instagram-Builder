@@ -17,16 +17,20 @@ final class MainScreenCell: UICollectionViewCell {
     private let viewScrolled: PublishSubject<CGFloat>
     private var viewModel: MainScreenCellViewModelType?
     private let disposeBag: DisposeBag
-     
+    private var cvTopAnchor: NSLayoutConstraint!
+    
+    private var scrollViewOfsset: CGFloat = 0
+    
     private let collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.minimumLineSpacing = 0
         layout.minimumInteritemSpacing = 0
+        layout.headerReferenceSize = CGSize(width: 428, height: 247.5)
         let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
         cv.translatesAutoresizingMaskIntoConstraints = false
         cv.backgroundColor = .themeColor
         cv.allowsMultipleSelection = true
-        //cv.isScrollEnabled = false
+        cv.contentInsetAdjustmentBehavior = .never
         cv.register(PhotoCell.self, forCellWithReuseIdentifier: PhotoCell.reuseIdentifier)
         return cv
     }()
@@ -50,19 +54,27 @@ final class MainScreenCell: UICollectionViewCell {
             cell.configure(with: viewModel!.photoCellViewModel(for: index))
             return cell
         }
+        
         viewModel.sections.bind(to: collectionView.rx.items(dataSource: dataSource)).disposed(by: disposeBag)
         Observable.of(collectionView.rx.modelDeselected(Photo.self), collectionView.rx.modelSelected(Photo.self))
             .merge().map { _ -> [IndexPath]? in
                 return self.collectionView.indexPathsForSelectedItems
             }.bind(to: viewModel.selectedPhotos).disposed(by: disposeBag)
+        
+        viewModel.mainViewScrolled.filter({ [unowned self] (mainViewOffset) -> Bool in
+            return self.scrollViewOfsset != mainViewOffset && mainViewOffset < 247.5
+        }).debug().subscribe(onNext: { offset in
+            self.collectionView.contentOffset.y = offset
+        }).disposed(by: disposeBag)
     }
     
     private func setUpCollectionView() {
         addSubview(collectionView)
+        cvTopAnchor = collectionView.topAnchor.constraint(equalTo: self.topAnchor, constant: -247.5)
         NSLayoutConstraint.activate([
             collectionView.leadingAnchor.constraint(equalTo: leadingAnchor),
             collectionView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            collectionView.topAnchor.constraint(equalTo: topAnchor),
+            cvTopAnchor,
             collectionView.bottomAnchor.constraint(equalTo: bottomAnchor)
         ])
         collectionView.dragInteractionEnabled = true
@@ -77,7 +89,7 @@ final class MainScreenCell: UICollectionViewCell {
     
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
-        
+
         collectionView.backgroundColor = .themeColor
     }
 }
@@ -85,8 +97,15 @@ final class MainScreenCell: UICollectionViewCell {
 extension MainScreenCell: UICollectionViewDelegateFlowLayout {
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        viewScrolled.onNext(scrollView.contentOffset.y)
-        scrollView.bounces = (scrollView.contentOffset.y > 100)
+        let yOffset = scrollView.contentOffset.y
+        scrollViewOfsset = yOffset
+        viewScrolled.onNext(yOffset)
+        if yOffset < 247.5 {
+            cvTopAnchor.constant = -247.5 + yOffset
+        } else {
+            cvTopAnchor.constant = 0
+        }
+        
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
@@ -146,7 +165,7 @@ extension MainScreenCell: UICollectionViewDropDelegate {
                 collectionView.indexPathsForSelectedItems?.forEach({ (index) in
                     collectionView.deselectItem(at: index, animated: true)
                 })
-               viewModel?.selectedPhotos.onNext(nil)
+                viewModel?.selectedPhotos.onNext(nil)
             }, completion: nil)
             coordinator.drop(item.dragItem, toItemAt: destinationIndexPath)
             

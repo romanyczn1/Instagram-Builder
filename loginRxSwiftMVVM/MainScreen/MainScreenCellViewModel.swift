@@ -14,6 +14,7 @@ protocol MainScreenCellViewModelType: class {
     var selectedPhotos: BehaviorSubject<[IndexPath]?> { get }
     var viewScrolled: AnyObserver<CGFloat> { get }
     var scrollViewDidScroll: Observable<CGFloat> { get }
+    var mainViewScrolled: Observable<CGFloat> { get }
     func photoCellViewModel(for indexPath: IndexPath) -> PhotoCellViewModelType
     func reorderPhotos(from source: IndexPath, to destination: IndexPath)
     func getPhoto(at indexPath: IndexPath) -> Photo
@@ -31,10 +32,11 @@ final class MainScreenCellViewModel: MainScreenCellViewModelType {
     let didReorderPhotos: PublishSubject<Void>
     let viewScrolled: AnyObserver<CGFloat>
     let scrollViewDidScroll: Observable<CGFloat>
+    let mainViewScrolled: Observable<CGFloat>
     
     init(database: DataService, photoType: PhotoType,
          deletePhotosTapped: Observable<Void>, imagesAdded: Observable<[UIImage]?>,
-         selectedUser: Observable<User>) {
+         selectedUser: Observable<User>, mainViewScrolled: Observable<CGFloat>) {
         
         self.database = database
         self.disposeBag = DisposeBag()
@@ -43,6 +45,7 @@ final class MainScreenCellViewModel: MainScreenCellViewModelType {
         self.photos = BehaviorSubject<[Photo]>(value: [])
         self.selectedPhotos = BehaviorSubject<[IndexPath]?>(value: [])
         self.didReorderPhotos = PublishSubject<Void>()
+        self.mainViewScrolled = mainViewScrolled
         
         let _viewScrolled = PublishSubject<CGFloat>()
         viewScrolled = _viewScrolled.asObserver()

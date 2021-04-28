@@ -17,6 +17,7 @@
 		6064499E2602333000D9E11D /* ImagePickerCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6064499D2602333000D9E11D /* ImagePickerCoordinator.swift */; };
 		606449A426023D2B00D9E11D /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 606449A326023D2B00D9E11D /* ImagePicker.swift */; };
 		606C007125BA0046006EEBA3 /* MainScreenCellViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 606C007025BA0046006EEBA3 /* MainScreenCellViewModel.swift */; };
+		607043782630BD5A00B154DD /* HeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 607043772630BD5A00B154DD /* HeaderView.swift */; };
 		607E677825DAB3480079CF9E /* ImageStoringService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 607E677725DAB3480079CF9E /* ImageStoringService.swift */; };
 		60804BB125FBEB0900854693 /* UserSettingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60804BB025FBEB0900854693 /* UserSettingViewModel.swift */; };
 		60849F3025FA02FC005D624C /* UserSettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60849F2F25FA02FC005D624C /* UserSettingsViewController.swift */; };
@@ -56,6 +57,7 @@
 		6064499D2602333000D9E11D /* ImagePickerCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePickerCoordinator.swift; sourceTree = "<group>"; };
 		606449A326023D2B00D9E11D /* ImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
 		606C007025BA0046006EEBA3 /* MainScreenCellViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainScreenCellViewModel.swift; sourceTree = "<group>"; };
+		607043772630BD5A00B154DD /* HeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeaderView.swift; sourceTree = "<group>"; };
 		607E677725DAB3480079CF9E /* ImageStoringService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageStoringService.swift; sourceTree = "<group>"; };
 		60804BB025FBEB0900854693 /* UserSettingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSettingViewModel.swift; sourceTree = "<group>"; };
 		60849F2F25FA02FC005D624C /* UserSettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSettingsViewController.swift; sourceTree = "<group>"; };
@@ -200,6 +202,7 @@
 				60BC723A25AE3F2800475189 /* MainScreenVCViewModel.swift */,
 				60C81A3625B0D2AC00A9EEC2 /* MainScreenCell.swift */,
 				606C007025BA0046006EEBA3 /* MainScreenCellViewModel.swift */,
+				607043772630BD5A00B154DD /* HeaderView.swift */,
 				60B677202606652D00A03A61 /* PhotoCell.swift */,
 				60B677232606653600A03A61 /* PhotoCellViewModel.swift */,
 				603102AD2625C5EA00E8D5DE /* Subviews */,
@@ -361,6 +364,7 @@
 				604DA67925FD1EB9003791FB /* UIColorExt.swift in Sources */,
 				60849F3025FA02FC005D624C /* UserSettingsViewController.swift in Sources */,
 				60AD41FD25B1E1550075DABD /* NavBarTitleViewViewModel.swift in Sources */,
+				607043782630BD5A00B154DD /* HeaderView.swift in Sources */,
 				60804BB125FBEB0900854693 /* UserSettingViewModel.swift in Sources */,
 				60BC724125AF30CC00475189 /* MenuBarViewModel.swift in Sources */,
 				6091093C259B4FD100CD87F9 /* MainScreenViewController.swift in Sources */,

@@ -15,13 +15,16 @@ final class MainScreenViewController: UIViewController, StoryboardInitializable 
     let mainViewScrolled: PublishSubject<CGFloat> = PublishSubject<CGFloat>()
     private var viewState: ViewState = .loaded
     
+    private var scrollViewOfsset: CGFloat = 0
     private var menuBar: MenuBar!
     
-    private let mainScrollView: UIScrollView = {
+    lazy var mainScrollView: UIScrollView = {
         let scrollView = UIScrollView()
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         scrollView.showsVerticalScrollIndicator = false
+        scrollView.showsHorizontalScrollIndicator = false
         scrollView.bounces = false
+        scrollView.delegate = self
         return scrollView
     }()
     
@@ -99,7 +102,6 @@ final class MainScreenViewController: UIViewController, StoryboardInitializable 
             contentView.leadingAnchor.constraint(equalTo: mainScrollView.leadingAnchor, constant: 0),
             contentView.trailingAnchor.constraint(equalTo: mainScrollView.trailingAnchor, constant: 0),
             contentView.bottomAnchor.constraint(equalTo: mainScrollView.bottomAnchor, constant: 0),
-            contentView.centerYAnchor.constraint(equalTo: mainScrollView.centerYAnchor),
             contentView.centerXAnchor.constraint(equalTo: mainScrollView.centerXAnchor)
         ])
         
@@ -108,7 +110,7 @@ final class MainScreenViewController: UIViewController, StoryboardInitializable 
             headerView.topAnchor.constraint(equalTo: contentView.topAnchor),
             headerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             headerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            headerView.heightAnchor.constraint(equalToConstant: 47.5)
+            headerView.heightAnchor.constraint(equalToConstant: 247.5)
         ])
         
         menuBar.translatesAutoresizingMaskIntoConstraints = false
@@ -119,12 +121,13 @@ final class MainScreenViewController: UIViewController, StoryboardInitializable 
             menuBar.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             menuBar.heightAnchor.constraint(equalToConstant: 47.5)
         ])
-        mainScrollView.contentSize = CGSize(width: view.frame.width, height: 48.5 + view.frame.height - view.safeAreaInsets.top - view.safeAreaInsets.bottom)
+        
+        mainScrollView.contentSize = CGSize(width: view.frame.width, height: 247.5 + view.frame.height - view.safeAreaInsets.top - view.safeAreaInsets.bottom)
+        
         contentView.addSubview(collectionView)
         let bottomAnchor = collectionView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor)
         bottomAnchor.priority = UILayoutPriority(rawValue: 250)
         let heightAnchor = collectionView.heightAnchor.constraint(equalToConstant: view.frame.height - 47.5 - view.safeAreaInsets.top - view.safeAreaInsets.bottom)
-        print(view.frame.height - 47.5 - view.safeAreaInsets.top - view.safeAreaInsets.bottom)
         heightAnchor.priority = UILayoutPriority(rawValue: 999)
         NSLayoutConstraint.activate([
             collectionView.topAnchor.constraint(equalTo: menuBar.bottomAnchor, constant: 1),
@@ -140,13 +143,13 @@ final class MainScreenViewController: UIViewController, StoryboardInitializable 
         }
         
         contentView.addSubview(usersSlideMenu)
-        
         NSLayoutConstraint.activate([
             usersSlideMenu.topAnchor.constraint(equalTo: menuBar.bottomAnchor),
             usersSlideMenu.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             usersSlideMenu.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             slideMenuHeightConstraint
         ])
+        
         
         contentView.addSubview(blackView)
         NSLayoutConstraint.activate([
@@ -158,13 +161,20 @@ final class MainScreenViewController: UIViewController, StoryboardInitializable 
     }
     
     private func bindScrollView() {
-        viewModel.mainCellDidScroll.subscribe(onNext: { [unowned self] yOffset in
+        viewModel.mainCellDidScroll.skip(1).filter({ [unowned self] (offset) -> Bool in
+            return offset != self.scrollViewOfsset
+        }).debug().subscribe(onNext: { [unowned self] yOffset in
             if yOffset <= headerView.frame.height {
+                print("----------setting \(yOffset)--------")
                 mainScrollView.contentOffset.y = yOffset
             } else {
+                print("--------setting \(headerView.frame.height)----------------")
+                //print(headerView.bounds.height)
                 mainScrollView.contentOffset.y = headerView.frame.height
             }
         }).disposed(by: disposeBag)
+        
+        mainViewScrolled.bind(to: viewModel.mainViewScrolled).disposed(by: disposeBag)
     }
     
     private func bindNavBar() {
@@ -184,7 +194,7 @@ final class MainScreenViewController: UIViewController, StoryboardInitializable 
     
     private func bindMenuBar() {
         menuBar = MenuBar(frame: .zero, viewModel: viewModel.menuBarViewModel())
-        menuBar.collectionView.rx.itemSelected.distinctUntilChanged().subscribe(onNext: { [weak self] (indexPath) in
+        menuBar.collectionView.rx.itemSelected.subscribe(onNext: { [weak self] (indexPath) in
             self?.collectionView.scrollToItem(at: indexPath, at: .bottom, animated: true)
         }).disposed(by: disposeBag)
     }
@@ -261,12 +271,18 @@ extension MainScreenViewController: UICollectionViewDataSource {
 
 extension MainScreenViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        print("cell height \(collectionView.bounds.height)")
         return CGSize(width: view.frame.width, height: collectionView.frame.height)
     }
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        menuBar.sliderLeadingConstraint.constant = scrollView.contentOffset.x/2
+        if scrollView === mainScrollView {
+            let yOffset = scrollView.contentOffset.y
+            print(yOffset)
+            self.scrollViewOfsset = yOffset
+            mainViewScrolled.onNext(yOffset)
+        } else {
+            menuBar.sliderLeadingConstraint.constant = scrollView.contentOffset.x/2
+        }
     }
     
     func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {

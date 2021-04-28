@@ -21,6 +21,7 @@ protocol MainScreenViewModelType: class {
     var imagesAdded: AnyObserver<[UIImage]?> { get }
     var photosDeleted: AnyObserver<Void> { get }
     var mainCellDidScroll: Observable<CGFloat> { get }
+    var mainViewScrolled: AnyObserver<CGFloat> { get }
     
     func getUsersSlideMenuHeight() -> CGFloat
     func menuBarViewModel() -> MenuBarViewModelType
@@ -44,6 +45,7 @@ final class MainScreenViewModel: MainScreenViewModelType {
     var imagesAdded: AnyObserver<[UIImage]?>
     let photosDeleted: AnyObserver<Void>
     let mainCellScrolled: AnyObserver<CGFloat>
+    let mainViewScrolled: AnyObserver<CGFloat>
     
     //MARK: -Outputs
     private let users: BehaviorSubject<[User]>
@@ -59,6 +61,7 @@ final class MainScreenViewModel: MainScreenViewModelType {
     let didAddImages: Observable<[UIImage]?>
     let deletePhotosTapped: Observable<Void>
     let mainCellDidScroll: Observable<CGFloat>
+    let mainViewDidScroll: Observable<CGFloat>
     
     private var usersCount: Int = 0
     
@@ -109,6 +112,10 @@ final class MainScreenViewModel: MainScreenViewModelType {
         let _mainCellScrolled = PublishSubject<CGFloat>()
         mainCellScrolled = _mainCellScrolled.asObserver()
         mainCellDidScroll = _mainCellScrolled.asObservable()
+        
+        let _mainViewScrolled = PublishSubject<CGFloat>()
+        mainViewScrolled = _mainViewScrolled.asObserver()
+        mainViewDidScroll = _mainViewScrolled.asObservable()
         
         menuBarCellSelected = BehaviorSubject<IndexPath>(value: IndexPath(item: 0, section: 0))
         
@@ -189,7 +196,7 @@ final class MainScreenViewModel: MainScreenViewModelType {
             return images
         }.debug()
         let vm = MainScreenCellViewModel(database: database, photoType: photoType, deletePhotosTapped: deletePhotosTapped,
-                                         imagesAdded: didAddImages, selectedUser: selectedUser)
+                                         imagesAdded: didAddImages, selectedUser: selectedUser, mainViewScrolled: mainViewDidScroll)
         vm.scrollViewDidScroll.bind(to: mainCellScrolled).disposed(by: bag)
         return vm
     }
