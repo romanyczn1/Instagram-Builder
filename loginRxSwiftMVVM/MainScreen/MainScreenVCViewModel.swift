@@ -177,21 +177,13 @@ final class MainScreenViewModel: MainScreenViewModelType {
         let photoType: PhotoType = indexPath.row == 0 ? .ordinary : .userMarked
         
         let deletePhotosTapped = self.deletePhotosTapped.withLatestFrom(menuBarCellSelected.asObservable()).filter { (index) -> Bool in
-            if photoType.rawValue == index.item {
-                return true
-            } else {
-                return false
-            }
+            return photoType.rawValue == index.item
         }.map{ _ in ()}
         
         let didAddImages = self.didAddImages.withLatestFrom(menuBarCellSelected.asObservable()){ images, index in
             return (images,index)
         }.filter { (images, index) -> Bool in
-            if photoType.rawValue == index.item {
-                return true
-            } else {
-                return false
-            }
+            return photoType.rawValue == index.item
         }.map { (images, _) -> [UIImage]? in
             return images
         }.debug()

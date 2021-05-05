@@ -161,15 +161,12 @@ final class MainScreenViewController: UIViewController, StoryboardInitializable 
     }
     
     private func bindScrollView() {
-        viewModel.mainCellDidScroll.skip(1).filter({ [unowned self] (offset) -> Bool in
+        viewModel.mainCellDidScroll.filter({ [unowned self] (offset) -> Bool in
             return offset != self.scrollViewOfsset
         }).debug().subscribe(onNext: { [unowned self] yOffset in
             if yOffset <= headerView.frame.height {
-                print("----------setting \(yOffset)--------")
                 mainScrollView.contentOffset.y = yOffset
             } else {
-                print("--------setting \(headerView.frame.height)----------------")
-                //print(headerView.bounds.height)
                 mainScrollView.contentOffset.y = headerView.frame.height
             }
         }).disposed(by: disposeBag)
@@ -277,7 +274,6 @@ extension MainScreenViewController: UICollectionViewDelegateFlowLayout {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         if scrollView === mainScrollView {
             let yOffset = scrollView.contentOffset.y
-            print(yOffset)
             self.scrollViewOfsset = yOffset
             mainViewScrolled.onNext(yOffset)
         } else {
