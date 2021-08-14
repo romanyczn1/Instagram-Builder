@@ -61,8 +61,10 @@ final class MainScreenCell: UICollectionViewCell {
                 return self.collectionView.indexPathsForSelectedItems
             }.bind(to: viewModel.selectedPhotos).disposed(by: disposeBag)
         
+        
+        //MARK: -SCROLLING LOGIC
         viewModel.mainViewScrolled.filter({ [unowned self] (mainViewOffset) -> Bool in
-            return self.scrollViewOfsset != mainViewOffset && mainViewOffset < 247.67
+            return self.scrollViewOfsset != mainViewOffset && mainViewOffset < 247.5
         }).debug().subscribe(onNext: { offset in
             self.collectionView.contentOffset.y = offset
         }).disposed(by: disposeBag)

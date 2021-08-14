@@ -18,6 +18,12 @@ final class MainScreenViewController: UIViewController, StoryboardInitializable 
     private var scrollViewOfsset: CGFloat = 0
     private var menuBar: MenuBar!
     
+//    lazy var tableView: UITableView = {
+//        let tv = UITableView()
+//        tv.translatesAutoresizingMaskIntoConstraints = false
+//        return tv
+//    }()
+    
     lazy var mainScrollView: UIScrollView = {
         let scrollView = UIScrollView()
         scrollView.translatesAutoresizingMaskIntoConstraints = false
@@ -161,13 +167,16 @@ final class MainScreenViewController: UIViewController, StoryboardInitializable 
     }
     
     private func bindScrollView() {
+        
+        //MARK: -Scrolling logic
+        
         viewModel.mainCellDidScroll.filter({ [unowned self] (offset) -> Bool in
             return offset != self.scrollViewOfsset
         }).debug().subscribe(onNext: { [unowned self] yOffset in
-            if yOffset <= headerView.frame.height {
+            if yOffset <= headerView.bounds.height {
                 mainScrollView.contentOffset.y = yOffset
             } else {
-                mainScrollView.contentOffset.y = headerView.frame.height
+                mainScrollView.contentOffset.y = headerView.bounds.height
             }
         }).disposed(by: disposeBag)
         
@@ -282,9 +291,12 @@ extension MainScreenViewController: UICollectionViewDelegateFlowLayout {
     }
     
     func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
-        let index = Int(targetContentOffset.pointee.x/view.frame.width)
-        let indexPath = IndexPath(item: index, section: 0)
-        menuBar.collectionView.selectItem(at: indexPath, animated: false, scrollPosition: .bottom)
-        viewModel.menuBarCellSelected.onNext(indexPath)
+        if scrollView != mainScrollView {
+            //horizontal scrollView
+            let index = Int(targetContentOffset.pointee.x/view.frame.width)
+            let indexPath = IndexPath(item: index, section: 0)
+            menuBar.collectionView.selectItem(at: indexPath, animated: false, scrollPosition: .bottom)
+            viewModel.menuBarCellSelected.onNext(indexPath)
+        }
     }
 }
